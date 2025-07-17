@@ -5,6 +5,7 @@ const {
   listActions,
   listActionsByUser,
 } = require("../controllers/actionsController");
+const { getListenerStatus } = require("../listeners/blockchainListener");
 
 /**
  * @swagger
@@ -97,5 +98,43 @@ router.get("/", listActions);
  *                     format: date-time
  */
 router.get("/:userAddress", listActionsByUser);
+
+/**
+ * @swagger
+ * /actions/system/status:
+ *   get:
+ *     summary: Obtener el estado de los listeners de blockchain
+ *     responses:
+ *       200:
+ *         description: Estado de los listeners
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isListening:
+ *                   type: boolean
+ *                 activeListeners:
+ *                   type: integer
+ *                 listenerNames:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ */
+router.get("/system/status", (req, res) => {
+  try {
+    const status = getListenerStatus();
+    res.json({
+      message: "Estado del sistema de listeners",
+      ...status,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: "Error al obtener estado del sistema",
+      details: error.message,
+    });
+  }
+});
 
 module.exports = router;
